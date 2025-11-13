@@ -25,7 +25,14 @@ def roots_20(coef: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
             - Wektor miejsc zerowych (m,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not isinstance(coef, np.ndarray):
+        return None
+    if  coef.shape != 1:
+        return None
+    coef += np.random.random_sample(coef.size)*1^(-10)
+    x = nppoly.polyroots(coef)
+    y = nppoly.polyfromroots(coef)
+    return x, y
 
 
 def frob_a(coef: np.ndarray) -> np.ndarray | None:
@@ -48,7 +55,15 @@ def frob_a(coef: np.ndarray) -> np.ndarray | None:
         (np.ndarray): Macierz Frobeniusa o rozmiarze (n,n).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not isinstance(coef, np.ndarray):
+        return None
+    n = coef.size
+    matrix_frobenius = np.zeros((n,n))
+    for i in range (n-1):
+        matrix_frobenius[i,i+1] += 1
+    matrix_frobenius[-1,:] = coef[::-1]
+    return matrix_frobenius
+
 
 
 def is_nonsingular(A: np.ndarray) -> bool | None:
