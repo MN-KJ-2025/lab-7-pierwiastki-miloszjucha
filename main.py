@@ -27,12 +27,14 @@ def roots_20(coef: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
     """
     if not isinstance(coef, np.ndarray):
         return None
-    if  coef.shape != 1:
+    if coef.size < 2:
         return None
-    coef += np.random.random_sample(coef.size)*1^(-10)
-    x = nppoly.polyroots(coef)
-    y = nppoly.polyfromroots(coef)
-    return x, y
+    if coef.ndim != 1:
+        return None
+    noise = np.random.random_sample(coef.shape) * 1e-10
+    perturbed_coef = coef + noise
+    roots = nppoly.polyroots(perturbed_coef)
+    return perturbed_coef, roots
 
 
 def frob_a(coef: np.ndarray) -> np.ndarray | None:
@@ -55,14 +57,21 @@ def frob_a(coef: np.ndarray) -> np.ndarray | None:
         (np.ndarray): Macierz Frobeniusa o rozmiarze (n,n).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    if not isinstance(coef, np.ndarray):
+    if not isinstance(coef, np.ndarray): 
         return None
-    n = coef.size
-    matrix_frobenius = np.zeros((n,n))
-    for i in range (n-1):
-        matrix_frobenius[i,i+1] += 1
-    matrix_frobenius[-1,:] = coef[::-1]
-    return matrix_frobenius
+    if coef.ndim != 1:
+        return None
+    
+    n = coef.shape[0]
+    if n < 2 or coef[-1] == 0:
+        return None
+
+    Frobenius = np.zeros((n-1, n-1))
+    for i in range(n - 2):
+        Frobenius[i, i + 1] = 1.0
+    Frobenius[-1, :] = -coef[:-1] / coef[-1]
+    
+    return Frobenius
 
 
 
@@ -78,4 +87,16 @@ def is_nonsingular(A: np.ndarray) -> bool | None:
             wypadku `False`.
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not isinstance(A, np.ndarray):
+        return None
+    if A.ndim != 2:
+        return None
+    n, m = A.shape
+    if n != m or n == 0:
+        return None
+    try:
+        cond_number = np.linalg.cond(A)
+        zero_machine = np.finfo(float).eps
+        return cond_number < 1 / zero_machine
+    except np.linalg.LinAlgError:
+        return None
